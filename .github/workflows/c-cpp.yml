@@ -1,0 +1,44 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-18.04
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: install dependencies
+      run: sudo apt-get update &&
+           sudo apt-get install -y g++ python3.8-dev make python3-pip git &&
+           git clone https://github.com/mapbox/gzip-hpp.git &&
+           sudo cp -r gzip-hpp/include/gzip /usr/include
+    - name: install pybind11
+      run: python3.8 -m pip install pybind11
+    - name: make
+      run: make
+    - uses: actions/upload-artifact@v2
+      with:
+        name: simplecache
+        path: |
+          simplecache-*
+          *.so
+
+  test:
+    runs-on: ubuntu-18.04
+    needs: build
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/download-artifact@master
+      with:
+        name: simplecache
+    - name: install dependencies
+      run: sudo apt-get update &&
+           sudo apt-get install -y g++ python3.8
+    - name: test
+      run: python3.8 -c 'import simplecache'
