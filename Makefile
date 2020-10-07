@@ -2,8 +2,9 @@ SHELL=/bin/bash
 
 PYTHON:=python3.8
 PYTARGET:=simplecache$(shell ${PYTHON}-config --extension-suffix)
-TARGET:=simplecache-linux-x86_64
-CCOPT:=-std=c++2a -g -W -Wall $(shell ${PYTHON} -m pybind11 --includes)
+ARCH:=x86-64
+TARGET:=simplecache-linux-$(ARCH)
+CCOPT:=-std=c++2a -march=$(ARCH) -g -W -Wall $(shell ${PYTHON} -m pybind11 --includes)
 CXX:=g++
 
 all: $(TARGET) $(PYTARGET)
