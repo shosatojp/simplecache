@@ -1,24 +1,13 @@
-#pragma once
-
-#include <filesystem>
 #include <memory>
 #include <string>
-#include <unordered_map>
-#include <vector>
 
-#include "httpheader.hpp"
-#include "structs.hpp"
-namespace fs = std::filesystem;
+#include "entry.hpp"
 
-class SimpleCacheEntry {
+class SimpleCache {
    public:
-    SimpleCacheEntry(std::string __path);
-    std::string __path;
+    SimpleCache(std::string __cache_dir);
+    SimpleCacheEntry find(std::string) const;
 
-    HttpHeader get_header() const;
-    std::unique_ptr<std::vector<char>> get_data() const;
-    std::string get_key() const;
-    bool save(std::string __path) const;
-
-   private:
+//    private:
+    std::unordered_map<std::string, std::unique_ptr<SimpleCacheEntry>> index;
 };
