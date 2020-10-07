@@ -1,83 +1,124 @@
-#include <cstdint>
+
+#include "simple.hpp"
+
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <vector>
 
-// https://github.com/chromium/chromium/blob/master/net/disk_cache/simple/simple_entry_format.h
+#include "httpheader.hpp"
 
-struct SimpleFileHeader {
-    SimpleFileHeader() = default;
+SimpleCacheEntry::SimpleCacheEntry(std::string __path) : __path(__path) {
+    this->get_key();
+}
 
-    uint64_t initial_magic_number;
-    uint32_t version;
-    uint32_t key_length;
-    uint32_t key_hash;
-};
+std::string SimpleCacheEntry::get_key() const {
+    std::ifstream ifs{this->__path};
 
-struct SimpleFileEOF {
-    enum Flags {
-        FLAG_HAS_CRC32 = (1U << 0),
-        FLAG_HAS_KEY_SHA256 = (1U << 1),  // Preceding the record if present.
-    };
+    SimpleFileHeader h;
+    ifs.read((char *)&h, sizeof(SimpleFileHeader));
 
-    SimpleFileEOF() = default;
+    std::string key;
+    key.resize(h.key_length);
+    ifs.read(&key[0], h.key_length);
 
-    uint64_t final_magic_number;
-    uint32_t flags;
-    uint32_t data_crc32;
-    // |stream_size| is only used in the EOF record for stream 0.
-    uint32_t stream_size;
-};
+    ifs.close();
 
-// SimpleFileHeader::SimpleFileHeader(){};
+    return key;
+}
 
-int main() {
-    std::string path = "/home/sho/.cache/google-chrome/Default/Cache/fab7b15df35ff409_0";
-    {
-        std::ifstream ifs{path};
+HttpHeader SimpleCacheEntry::get_header() const {
+    // read from back
+    std::ifstream ifs{this->__path};
 
-        SimpleFileHeader h;
-        ifs.read((char *)&h, sizeof(SimpleFileHeader));
+    // stream 0 eof
+    ifs.seekg(-sizeof(SimpleFileEOF), std::ios::end);
+    SimpleFileEOF eof0;
+    ifs.read((char *)&eof0, sizeof(SimpleFileEOF));
+    ifs.seekg(-sizeof(SimpleFileEOF), std::ios::end);
 
-        std::string key;
-        key.resize(h.key_length);
-        ifs.read(&key[0], h.key_length);
-
-        std::cout << key << std::endl;
-
-        ifs.close();
+    if (eof0.flags & SimpleFileEOF::FLAG_HAS_KEY_SHA256) {
+        // skip sha256
+        ifs.seekg(-32, std::ios::cur);
     }
-    {
-        // 後ろから読む
-        std::ifstream ifs{path};
 
-        ifs.seekg(-sizeof(SimpleFileEOF), std::ios::end);
-        SimpleFileEOF eof0;
-        ifs.read((char *)&eof0, sizeof(SimpleFileEOF));
-        ifs.seekg(-sizeof(SimpleFileEOF), std::ios::end);
-        std::cout << eof0.stream_size << std::endl;
-        if (eof0.flags && SimpleFileEOF::FLAG_HAS_KEY_SHA256) {
-            ifs.seekg(-32, std::ios::cur);
+    // stream 0 data
+    ifs.seekg(-(long)eof0.stream_size, std::ios::cur);
+
+    SimpleMeta meta;
+    std::streampos stream_0_start = ifs.tellg();
+    ifs.read((char *)&meta, sizeof(SimpleMeta));
+    std::string buf(meta.header_size, '\0');
+    ifs.read(&buf[0], meta.header_size);
+    // ifs.seekg(stream_0_start);
+    ifs.close();
+
+    // parse header
+    HttpHeader h;
+
+    size_t start = 0;
+    while (buf[start] != '\0') {
+        size_t end = buf.find_first_of('\0', start);
+
+        if (start == 0) {
+            h.status_source = buf.substr(start, end - start + 1);
+        } else {
+            size_t coron = buf.find_first_of(':', start);
+            auto key = buf.substr(start, coron - start);
+            auto value = buf.substr(coron + 1, end - coron);
+            h.headers[key] = value;
         }
 
-        ifs.seekg(-(long)eof0.stream_size, std::ios::cur);
-        std::string buf(eof0.stream_size, '\0');
-        ifs.read(&buf[0], eof0.stream_size);
-        ifs.seekg(-(long)eof0.stream_size, std::ios::cur);
-        // std::cout << "hoge" << std::endl;
+        start = end + 1;
+    }
 
-        // std::cout << buf << std::endl;
-        SimpleFileEOF eof1;
-        ifs.seekg(-sizeof(SimpleFileEOF), std::ios::end);
-        ifs.read((char *)&eof1, sizeof(SimpleFileEOF));
-        ifs.seekg(-sizeof(SimpleFileEOF), std::ios::end);
-        std::cout << eof1.stream_size << std::endl;
-        ifs.close();
+    return h;
+}
 
-        // std::ofstream ofs{"out.txt", std::ios::binary};
-        // ofs << buf;
-        // ofs.close();
-        // ofs.write(buf.begin())
+std::unique_ptr<std::vector<char>> SimpleCacheEntry::get_data() const {
+    // read from back
+    std::ifstream ifs{this->__path};
+
+    // stream 0 eof
+    ifs.seekg(-sizeof(SimpleFileEOF), std::ios::end);
+    SimpleFileEOF eof0;
+    ifs.read((char *)&eof0, sizeof(SimpleFileEOF));
+    ifs.seekg(-sizeof(SimpleFileEOF), std::ios::end);
+
+    if (eof0.flags & SimpleFileEOF::FLAG_HAS_KEY_SHA256) {
+        // skip sha256
+        ifs.seekg(-32, std::ios::cur);
+    }
+
+    // stream 0 data
+    ifs.seekg(-(long)eof0.stream_size, std::ios::cur);
+
+    // stream 1 eof
+    SimpleFileEOF eof1;
+    ifs.seekg(-sizeof(SimpleFileEOF), std::ios::cur);
+    ifs.read((char *)&eof1, sizeof(SimpleFileEOF));
+    ifs.seekg(-sizeof(SimpleFileEOF), std::ios::cur);
+
+    // stream 1 data
+    ifs.seekg(-(long)eof1.stream_size, std::ios::cur);
+    auto ptr = std::make_unique<std::vector<char>>(eof1.stream_size);
+    if (eof1.stream_size > 0) {
+        ifs.read(&ptr->at(0), eof1.stream_size);
+    }
+    ifs.close();
+
+    return ptr;
+}
+
+bool SimpleCacheEntry::save(std::string __path) const {
+    auto ptr = this->get_data();
+
+    if (ptr->size() > 0) {
+        std::ofstream ofs{__path, std::ios::binary};
+        ofs.write(&ptr->at(0), ptr->size());
+        ofs.close();
+        return true;
+    } else {
+        std::cerr << "Error: no content" << std::endl;
+        return false;
     }
 }
