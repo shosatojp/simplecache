@@ -19,7 +19,11 @@ PYBIND11_MODULE(simplecache, m) {
         .def(py::init<std::string>(), py::arg("path"))
         .def("get_key", &SimpleCacheEntry::get_key)
         .def("get_header", &SimpleCacheEntry::get_header)
-        .def("get_data", &SimpleCacheEntry::get_data_copy)
+        .def("get_data",
+             [](const SimpleCacheEntry& self) {
+                 auto v = self.get_data();
+                 return py::bytes(std::string(v->begin(), v->end()));
+             })
         .def("save", &SimpleCacheEntry::save, py::arg("key"));
 
     py::class_<HttpHeader>(m, "HttpHeader")

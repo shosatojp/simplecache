@@ -63,7 +63,10 @@ HttpHeader SimpleCacheEntry::get_header() const {
         } else {
             size_t coron = buf.find_first_of(':', start);
             auto key = buf.substr(start, coron - start);
-            auto value = buf.substr(coron + 1, end - coron);
+            std::transform(key.begin(), key.end(), key.begin(), [](char c) {
+                return std::tolower(c);
+            });
+            auto value = buf.substr(coron + 1, end - 1 - coron);
             h.headers[key] = value;
         }
 
@@ -108,10 +111,6 @@ std::unique_ptr<std::vector<char>> SimpleCacheEntry::get_data() const {
     return ptr;
 }
 
-std::vector<char> SimpleCacheEntry::get_data_copy() const {
-    return *this->get_data();
-}
-
 bool SimpleCacheEntry::save(std::string __path) const {
     auto ptr = this->get_data();
 
@@ -121,7 +120,6 @@ bool SimpleCacheEntry::save(std::string __path) const {
         ofs.close();
         return true;
     } else {
-        std::cerr << "Error: no content" << std::endl;
         return false;
     }
 }
