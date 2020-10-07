@@ -22,7 +22,11 @@ PYBIND11_MODULE(simplecache, m) {
         .def("get_data",
              [](const SimpleCacheEntry& self) {
                  auto v = self.get_data();
-                 return py::bytes(&v->at(0), v->size());
+                 if (v->size() > 0) {
+                     return py::bytes(&v->at(0), v->size());
+                 } else {
+                     return py::bytes();
+                 }
              })
         .def("save", &SimpleCacheEntry::save, py::arg("key"));
 

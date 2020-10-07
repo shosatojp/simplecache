@@ -1,4 +1,5 @@
 /.vscode/
+/cache/
 *.out
 *.o
 *.txt

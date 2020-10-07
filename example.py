@@ -15,7 +15,6 @@ if not os.path.exists(out_dir):
 for entry_file in glob.glob(cache_dir):
     e = SimpleCacheEntry(entry_file)
     url = e.get_key()
-    print(url)
 
     filename = urllib.parse.quote(url, safe='')[:255]
     encoding = e.get_header().headers.get('content-encoding', '').strip().lower()
