@@ -23,7 +23,7 @@ int main(int argc, const char* argv[]) {
             std::cout << "[usage]" << std::endl
                       << "simplecache [OPTIONS]" << std::endl
                       << "--list  -l      list all keys" << std::endl
-                      << "--cache -c      cache2 directory" << std::endl
+                      << "--cache -c      cache directory (alternative environment variable: SIMPLECACHE_DIR)" << std::endl
                       << "--key   -k      key" << std::endl
                       << "--out   -o      output path" << std::endl;
             exit(0);
@@ -43,8 +43,13 @@ int main(int argc, const char* argv[]) {
     }
 
     if (!cache_dir.size()) {
-        std::cerr << "Error: --cache required" << std::endl;
-        exit(1);
+        char* dir = std::getenv("SIMPLECACHE_DIR");
+        if (dir) {
+            cache_dir = dir;
+        } else {
+            std::cerr << "Error: --cache required" << std::endl;
+            exit(1);
+        }
     }
 
     if (list) {
