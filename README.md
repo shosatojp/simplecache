@@ -29,6 +29,10 @@ simplecache --cache ~/.cache/google-chrome/Default/Cache/ --key https://example.
 
 ## Python Binding
 
+```sh
+pip install chromesimplecache
+```
+
 ```py
 from simplecache import SimpleCacheEntry
 import glob
