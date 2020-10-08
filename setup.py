@@ -4,13 +4,12 @@ import subprocess
 from setuptools import setup
 from setuptools.command.build_ext import build_ext
 from setuptools.extension import Extension
-import sysconfig
 import os
 import shutil
 
 
 class my_ext(build_ext):
-    def build_extension(self, ext):
+    def build_extension(self, _):
         subprocess.run(['make', 'py', f'-j{os.cpu_count()}'])
         bins = glob.glob('*.so')
         for bin in bins:
@@ -46,7 +45,7 @@ setup(
         'build_ext': my_ext,
     },
     ext_modules=[
-        # for c++ extension (arg `_simplecache` is arbitrary)
-        Extension('_simplecache', glob.glob('*.cpp') + glob.glob('*.hpp') + ['Makefile']),
+        # for c++ extension
+        Extension('', [])
     ]
 )
