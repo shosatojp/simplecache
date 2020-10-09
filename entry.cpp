@@ -45,7 +45,7 @@ HttpHeader SimpleCacheEntry::get_header() const {
     ifs.seekg(-(long)eof0.stream_size, std::ios::cur);
 
     SimpleMeta meta;
-    std::streampos stream_0_start = ifs.tellg();
+    // std::streampos stream_0_start = ifs.tellg();
     ifs.read((char *)&meta, sizeof(SimpleMeta));
     std::string buf(meta.header_size, '\0');
     ifs.read(&buf[0], meta.header_size);

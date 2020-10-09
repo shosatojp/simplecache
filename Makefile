@@ -3,7 +3,7 @@ SHELL=/bin/bash
 PYTHON?=python3
 PYTARGET:=_simplecache$(shell ${PYTHON}-config --extension-suffix)
 TARGET:=simplecache
-CCOPT:=-std=c++11 -O2 -g -W -Wall $(shell ${PYTHON} -m pybind11 --includes)
+CCOPT:=-std=c++11 -O2 -g -W -Wall -Wno-unused-value $(shell ${PYTHON} -m pybind11 --includes)
 CXX?=g++
 
 all: $(TARGET) $(PYTARGET)
