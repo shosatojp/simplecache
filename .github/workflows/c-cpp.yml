@@ -8,13 +8,20 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-18.04
-
     strategy:
       matrix:
-        python: [3.6, 3.9]
-        cxx: [ g++-7, g++-10, clang++-8, clang++-9 ]
+        # python: [3.6, 3.9]
+        # cxx: [ g++-7, g++-10, clang++-9 ]
+        os: [ ubuntu-18.04, macos-10.15 ]
+        inlcude:
+        - os: ubuntu-18.04
+          cxx: g++-10
+          python: 3.6
+        - os: macos-10.15
+          cxx: clang++-10
+          python: 3.6
 
+    runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-python@v2
