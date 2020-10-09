@@ -10,26 +10,27 @@ jobs:
   build:
     strategy:
       matrix:
+        cfg:
         - {
           os: ubuntu-18.04,
           cxx: g++-10,
           python: 3.9
         }
 
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.cfg.os }}
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-python@v2
       with:
-        python-version: ${{ matrix.python }}
+        python-version: ${{ matrix.cfg.python }}
     - name: pip
       run: python3 -m pip install pybind11 setuptools wheel
     - name: make
-      run: CXX=${{ matrix.cxx }} make -j8
+      run: CXX=${{ matrix.cfg.cxx }} make -j8
     - name: sdist
       run: python3 setup.py sdist
     - name: install
-      run: CXX=${{ matrix.cxx }} python3 -m pip install dist/*.tar.gz
+      run: CXX=${{ matrix.cfg.cxx }} python3 -m pip install dist/*.tar.gz
     - name: test
       run: cd ../ && python3 -c 'import simplecache'
     - uses: actions/upload-artifact@v2
