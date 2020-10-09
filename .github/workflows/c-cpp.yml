@@ -14,19 +14,18 @@ jobs:
     - uses: actions/checkout@v2
     - name: install dependencies
       run: sudo apt-get update &&
-           sudo apt-get install -y g++ python3.8-dev make python3-pip git &&
-           git clone https://github.com/mapbox/gzip-hpp.git &&
-           sudo cp -r gzip-hpp/include/gzip /usr/include
-    - name: install pybind11
-      run: python3.8 -m pip install pybind11
+           sudo apt-get install -y g++ python3.8-dev make python3-pip
+    - name: install with pip
+      run: python3 -m pip install pybind11 setuptools
     - name: make
-      run: make CXX=g++-9
+      run: make -j8 CXX=g++-9
+    - name: sdist
+      run: python3 setup.py sdist
     - uses: actions/upload-artifact@v2
       with:
         name: simplecache
         path: |
-          simplecache-*
-          *.so
+          dist/*
 
   test:
     runs-on: ubuntu-18.04
@@ -39,6 +38,9 @@ jobs:
         name: simplecache
     - name: install dependencies
       run: sudo apt-get update &&
-           sudo apt-get install -y g++ python3.8
+           sudo apt-get install -y g++ python3.8 &&
+           pip3 install setuptools
+    - name: install
+      run: pip3 install *.tar.gz
     - name: test
-      run: python3.8 -c 'import simplecache'
+      run: cd ../ && python3 -c 'import simplecache'
