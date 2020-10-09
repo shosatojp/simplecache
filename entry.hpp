@@ -1,6 +1,6 @@
 #pragma once
 
-#include <experimental/filesystem>
+#include <filesystem>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -8,7 +8,7 @@
 
 #include "httpheader.hpp"
 #include "structs.hpp"
-namespace fs = std::experimental::filesystem;
+namespace fs = std::filesystem;
 
 class SimpleCacheEntry {
    public:
