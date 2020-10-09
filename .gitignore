@@ -7,4 +7,5 @@
 *.so
 *.tmp
 *-x86-64
+__pycache__/
 /bin/
