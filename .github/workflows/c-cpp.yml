@@ -12,35 +12,18 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: install dependencies
-      run: sudo apt-get update &&
-           sudo apt-get install -y g++ python3.8-dev make python3-pip
-    - name: install with pip
-      run: python3 -m pip install pybind11 setuptools
+    - name: pip
+      run: python3 -m pip install pybind11 setuptools wheel
     - name: make
-      run: make -j8 CXX=g++-9
+      run: make -j8
     - name: sdist
       run: python3 setup.py sdist
+    - name: install
+      run: python3 -m pip install dist/*.tar.gz
+    - name: test
+      run: cd ../ && python3 -c 'import simplecache'
     - uses: actions/upload-artifact@v2
       with:
         name: simplecache
         path: |
           dist/*
-
-  test:
-    runs-on: ubuntu-18.04
-    needs: build
-
-    steps:
-    - uses: actions/checkout@v2
-    - uses: actions/download-artifact@master
-      with:
-        name: simplecache
-    - name: install dependencies
-      run: sudo apt-get update &&
-           sudo apt-get install -y g++ python3.8 &&
-           pip3 install setuptools wheel
-    - name: install
-      run: pip3 install *.tar.gz
-    - name: test
-      run: cd ../ && python3 -c 'import simplecache'
