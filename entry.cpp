@@ -3,10 +3,11 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <algorithm>
 
 #include "httpheader.hpp"
 
-SimpleCacheEntry::SimpleCacheEntry(std::string __path) : __path(__path) {
+SimpleCacheEntry::SimpleCacheEntry(const std::string& __path) : __path(__path) {
     this->get_key();
 }
 
@@ -102,7 +103,7 @@ std::unique_ptr<std::vector<char>> SimpleCacheEntry::get_data() const {
 
     // stream 1 data
     ifs.seekg(-(long)eof1.stream_size, std::ios::cur);
-    auto ptr = std::make_unique<std::vector<char>>(eof1.stream_size);
+    auto ptr = std::unique_ptr<std::vector<char>>(new std::vector<char>(eof1.stream_size));
     if (eof1.stream_size > 0) {
         ifs.read(&ptr->at(0), eof1.stream_size);
     }
@@ -111,7 +112,7 @@ std::unique_ptr<std::vector<char>> SimpleCacheEntry::get_data() const {
     return ptr;
 }
 
-bool SimpleCacheEntry::save(std::string __path) const {
+bool SimpleCacheEntry::save(const std::string& __path) const {
     auto ptr = this->get_data();
 
     if (ptr->size() > 0) {

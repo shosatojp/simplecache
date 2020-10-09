@@ -6,7 +6,7 @@
 
 namespace py = pybind11;
 
-PYBIND11_MODULE(simplecache, m) {
+PYBIND11_MODULE(_simplecache, m) {
     // py::class_<SimpleCache>(m, "SimpleCache")
     //     .def(py::init<std::string, bool>(), py::arg("cache_dir"))
     //     .def_readonly("index", &SimpleCache::index);

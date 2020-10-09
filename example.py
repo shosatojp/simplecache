@@ -1,4 +1,5 @@
 from simplecache import SimpleCacheEntry
+from simplecache.helper import save
 import glob
 import urllib.parse
 import os
@@ -20,18 +21,4 @@ for entry_file in glob.glob(cache_dir):
     encoding = e.get_header().headers.get('content-encoding', '').strip().lower()
     out_path = os.path.join(out_dir, filename)
 
-    if encoding:
-        # decompress with python
-        data = e.get_data()
-        if encoding == 'gzip':
-            data = gzip.decompress(data)
-        elif encoding == 'br':
-            data = brotli.decompress(data)
-        elif encoding == 'deflate':
-            data = zlib.decompress(data)
-
-        with open(out_path, 'wb') as f:
-            f.write(data)
-    else:
-        # faster for binary
-        e.save(out_path)
+    save(e, out_path)
