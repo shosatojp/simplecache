@@ -3,7 +3,7 @@ SHELL=/bin/bash
 PYTHON?=python3
 PYTARGET:=_simplecache$(shell $(PYTHON)-config --extension-suffix)
 TARGET:=simplecache
-CCOPT+=-std=c++17 -O2 -g -W -Wall -Wno-unused-value -Wno-range-loop-analysis $(shell $(PYTHON) -m pybind11 --includes)
+CCOPT+=-std=c++17 -O2 -g -W -Wall -Wno-unused-value -Wno-range-loop-analysis -Wno-deprecated-declarations $(shell $(PYTHON) -m pybind11 --includes)
 CXX?=g++
 
 ifeq ($(shell uname), Darwin)
