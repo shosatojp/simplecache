@@ -13,6 +13,7 @@ jobs:
     strategy:
       matrix:
         python: [3.6, 3.7, 3.8, 3.9]
+        cxx: [ g++-7, g++-8, g++-9, g++-10 ]
 
     steps:
     - uses: actions/checkout@v2
@@ -22,11 +23,11 @@ jobs:
     - name: pip
       run: python3 -m pip install pybind11 setuptools wheel
     - name: make
-      run: make -j8
+      run: CXX=${{ matrix.cxx }} make -j8
     - name: sdist
       run: python3 setup.py sdist
     - name: install
-      run: python3 -m pip install dist/*.tar.gz
+      run: CXX=${{ matrix.cxx }} python3 -m pip install dist/*.tar.gz
     - name: test
       run: cd ../ && python3 -c 'import simplecache'
     - uses: actions/upload-artifact@v2
