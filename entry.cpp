@@ -1,13 +1,13 @@
 #include "entry.hpp"
 
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <algorithm>
 
 #include "httpheader.hpp"
 
-SimpleCacheEntry::SimpleCacheEntry(const std::string& __path) : __path(__path) {
+SimpleCacheEntry::SimpleCacheEntry(const std::string &__path) : __path(__path) {
     this->get_key();
 }
 
@@ -17,10 +17,13 @@ std::string SimpleCacheEntry::get_key() const {
     SimpleFileHeader h;
     ifs.read((char *)&h, sizeof(SimpleFileHeader));
 
+    // std::cout << this->__pah << std::endl;
+
     std::string key;
     key.resize(h.key_length);
     ifs.read(&key[0], h.key_length);
 
+    // std::cout << key << std::endl;
     ifs.close();
 
     return key;
@@ -112,7 +115,7 @@ std::unique_ptr<std::vector<char>> SimpleCacheEntry::get_data() const {
     return ptr;
 }
 
-bool SimpleCacheEntry::save(const std::string& __path) const {
+bool SimpleCacheEntry::save(const std::string &__path) const {
     auto ptr = this->get_data();
 
     if (ptr->size() > 0) {
